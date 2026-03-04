@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+
+  mysql:
+    image: mysql:8
+    container_name: krishi-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: digitalKrishibazaar
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  backend:
+    build: .
+    container_name: krishi-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+
+volumes:
+  mysql-data:
