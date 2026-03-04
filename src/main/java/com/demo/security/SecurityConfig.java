@@ -101,7 +101,9 @@ public class SecurityConfig {
 
         config.setAllowedOriginPatterns(List.of(
             "http://localhost:*",
-            "http://127.0.0.1:*"
+            "http://127.0.0.1:*",
+            "https://*.netlify.app",
+            "https://cdac.ayushshirbhate.site"
         ));
 
         config.setAllowedMethods(
@@ -110,12 +112,13 @@ public class SecurityConfig {
 
         config.setAllowedHeaders(List.of("*"));
 
-        config.setAllowCredentials(false); // ✅ IMPORTANT
+        config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
 
