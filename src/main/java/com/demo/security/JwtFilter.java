@@ -32,17 +32,18 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // ✅ Skip JWT for public endpoints
         if (
-            request.getMethod().equals("OPTIONS") ||
-
-            path.startsWith("/api/auth") ||
-            path.startsWith("/api/users") ||
-            path.startsWith("/api/payments") ||   // ✅ ADD THIS
-
-            (path.startsWith("/api/products")
-                && request.getMethod().equals("GET")) ||
-
-            path.startsWith("/productImages")
-        ) {
+        	    request.getMethod().equals("OPTIONS") ||
+        	    path.startsWith("/api/auth") ||
+        	    path.startsWith("/api/users") ||
+        	    path.startsWith("/api/payments") ||
+        	    path.startsWith("/api/user-roles") ||
+        	    path.startsWith("/api/states") ||
+        	    path.startsWith("/api/divisions") ||
+        	    path.startsWith("/api/reviews") ||
+        	    (path.startsWith("/api/products")
+        	        && request.getMethod().equals("GET")) ||
+        	    path.startsWith("/productImages")
+        	) {
             filterChain.doFilter(request, response);
             return;
         }
