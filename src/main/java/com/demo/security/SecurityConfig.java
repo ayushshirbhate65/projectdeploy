@@ -100,11 +100,12 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOriginPatterns(List.of(
-            "http://localhost:*",
-            "http://127.0.0.1:*",
-            "https://*.netlify.app",
-            "https://cdac.ayushshirbhate.site"
-        ));
+        	    "http://localhost:*",
+        	    "http://127.0.0.1:*",
+        	    "https://cdac.ayushshirbhate.site",   // ✅ your custom domain
+        	    "https://*.netlify.app",              // ✅ all netlify
+        	    "https://*.onrender.com"             // ✅ add this too
+        	));
 
         config.setAllowedMethods(
             List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
