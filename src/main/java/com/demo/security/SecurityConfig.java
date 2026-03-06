@@ -42,17 +42,17 @@ public class SecurityConfig {
 
                 // 🔓 PUBLIC APIs
                 .requestMatchers(
-                    "/api/auth/**",
-                    "/api/users/**",
-                    "/api/states/**",
-                    "/api/divisions/**",
-                    "/productImages/**",
-                    "/api/payments/**",
-                    "/api/reviews/**",
-                    "/api/user-roles/**"
-                ).permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/user-roles/**")
-                .authenticated()
+                	    "/api/auth/**",
+                	    "/api/users/**",
+                	    "/api/states/**",
+                	    "/api/divisions/**",
+                	    "/productImages/**",
+                	    "/api/payments/**",
+                	    "/api/reviews/**"
+                	).permitAll()
+
+                	// USER ROLES - authenticated
+                	.requestMatchers("/api/user-roles/**").authenticated()
 
                 // 🟢 PUBLIC PRODUCT READ
                 .requestMatchers(HttpMethod.GET, "/api/products/**")
