@@ -35,7 +35,7 @@ public class UserService {
     @Autowired
     DivisionRepository divisionRepository;
     
-    
+    @Transactional
     public void assignRoles(Integer userId, List<Integer> roleIds) {
 
         User user = userRepository.findById(userId)
