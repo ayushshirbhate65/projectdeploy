@@ -51,6 +51,8 @@ public class SecurityConfig {
                     "/api/reviews/**",
                     "/api/user-roles/**"
                 ).permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/user-roles/**")
+                .authenticated()
 
                 // 🟢 PUBLIC PRODUCT READ
                 .requestMatchers(HttpMethod.GET, "/api/products/**")
