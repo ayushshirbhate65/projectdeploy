@@ -24,62 +24,50 @@ import jakarta.transaction.Transactional;
 public class UserService {
 
     @Autowired
-	UserRepository userRepository;
-    
+    private UserRepository userRepository;
+
     @Autowired
-    RoleRepository roleRepository;
+    private RoleRepository roleRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Autowired
-    StateRepository stateRepository;
+    private StateRepository stateRepository;
+
     @Autowired
-    DivisionRepository divisionRepository;
-    
+    private DivisionRepository divisionRepository;
+
+    /* ======================
+       ASSIGN ROLES
+       ====================== */
     @Transactional
     public void assignRoles(Integer userId, List<Integer> roleIds) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Clear existing roles (optional but recommended)
+        // Clear old roles
         user.getUserRoles().clear();
 
         for (Integer roleId : roleIds) {
+
             Role role = roleRepository.findById(roleId)
                     .orElseThrow(() -> new RuntimeException("Role not found"));
 
-            UserRole ur = new UserRole();
-            ur.setUser(user);
-            ur.setRole(role);
+            UserRole userRole = new UserRole();
+            userRole.setUser(user);
+            userRole.setRole(role);
 
-            user.getUserRoles().add(ur);
+            user.getUserRoles().add(userRole);
         }
 
         userRepository.save(user);
     }
-    public void becomeSeller(Integer userId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Role sellerRole = roleRepository.findByRoleName("ROLE_SELLER")
-                .orElseThrow(() -> new RuntimeException("Role not found"));
-
-        boolean alreadySeller = user.getUserRoles()
-                .stream()
-                .anyMatch(ur -> ur.getRole().getRoleName().equals("ROLE_SELLER"));
-
-        if (!alreadySeller) {
-
-            UserRole ur = new UserRole();
-            ur.setUser(user);
-            ur.setRole(sellerRole);
-
-            userRoleRepository.save(ur);
-        }
-    }
-
-
+    /* ======================
+       CREATE USER
+       ====================== */
     @Transactional
     public User createUser(CreateUserDTO dto) {
 
@@ -96,24 +84,25 @@ public class UserService {
         user.setDob(dto.getDob());
         user.setCreatedAt(LocalDateTime.now());
 
-        // ✅ DEFAULT ROLE = BUYER
-        Role buyer = roleRepository.findByRoleName("BUYER")
-                .orElseThrow(() -> new RuntimeException("BUYER role not found"));
+        // DEFAULT ROLE = ROLE_BUYER
+        Role buyerRole = roleRepository.findByRoleName("ROLE_BUYER")
+                .orElseThrow(() -> new RuntimeException("ROLE_BUYER not found"));
 
         UserRole userRole = new UserRole();
         userRole.setUser(user);
-        userRole.setRole(buyer);
+        userRole.setRole(buyerRole);
+
         user.getUserRoles().add(userRole);
 
-        // ✅ STATE
+        // STATE
         State state = stateRepository.findById(dto.getStateId())
                 .orElseThrow(() -> new RuntimeException("State not found"));
 
-        // ✅ DIVISION
+        // DIVISION
         Division division = divisionRepository.findById(dto.getDivisionId())
                 .orElseThrow(() -> new RuntimeException("Division not found"));
 
-        // ✅ VALIDATION (IMPORTANT 🔥)
+        // VALIDATION
         if (!division.getState().getStateId().equals(state.getStateId())) {
             throw new RuntimeException("Division does not belong to selected state");
         }
@@ -124,21 +113,28 @@ public class UserService {
         return userRepository.save(user);
     }
 
-
-
-
+    /* ======================
+       GET USER BY ID
+       ====================== */
     public User getUserById(Integer userId) {
+
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+                .orElseThrow(() ->
+                        new RuntimeException("User not found with id: " + userId));
     }
 
- 
+    /* ======================
+       GET ALL USERS
+       ====================== */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    
+    /* ======================
+       UPDATE USER
+       ====================== */
     public User updateUser(Integer userId, User user) {
+
         User existingUser = getUserById(userId);
 
         existingUser.setUserName(user.getUserName());
@@ -150,17 +146,26 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
-
+    /* ======================
+       DELETE USER
+       ====================== */
     public void deleteUser(Integer userId) {
         userRepository.deleteById(userId);
     }
 
-
+    /* ======================
+       GET USER BY EMAIL
+       ====================== */
     public User getUserByEmail(String email) {
+
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                .orElseThrow(() ->
+                        new RuntimeException("User not found with email: " + email));
     }
 
+    /* ======================
+       GET USERS BY STATUS
+       ====================== */
     public List<User> getUsersByStatus(String status) {
         return userRepository.findByStatus(status);
     }
