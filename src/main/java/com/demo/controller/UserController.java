@@ -43,6 +43,14 @@ public class UserController {
         );
     }
 
+    @PostMapping("/become-seller")
+    public ResponseEntity<String> becomeSeller(
+            @RequestParam Integer userId) {
+
+        userService.becomeSeller(userId);
+
+        return ResponseEntity.ok("User upgraded to SELLER");
+    }
 
 
     /* ======================

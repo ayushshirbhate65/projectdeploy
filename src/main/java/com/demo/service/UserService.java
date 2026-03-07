@@ -43,25 +43,20 @@ public class UserService {
        ====================== */
     @Transactional
     public void assignRoles(Integer userId, List<Integer> roleIds) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Clear old roles
         user.getUserRoles().clear();
+        userRepository.flush();
 
         for (Integer roleId : roleIds) {
-
             Role role = roleRepository.findById(roleId)
-                    .orElseThrow(() -> new RuntimeException("Role not found"));
-
+                    .orElseThrow(() -> new RuntimeException("Role not found: " + roleId));
             UserRole userRole = new UserRole();
             userRole.setUser(user);
             userRole.setRole(role);
-
             user.getUserRoles().add(userRole);
         }
-
         userRepository.save(user);
     }
 
@@ -145,6 +140,7 @@ public class UserService {
 
         return userRepository.save(existingUser);
     }
+    
 
     /* ======================
        DELETE USER
@@ -169,4 +165,9 @@ public class UserService {
     public List<User> getUsersByStatus(String status) {
         return userRepository.findByStatus(status);
     }
+
+	public void becomeSeller(Integer userId) {
+		// TODO Auto-generated method stub
+		
+	}
 }

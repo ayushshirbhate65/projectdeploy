@@ -5,16 +5,21 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 import org.springframework.web.cors.*;
 
 @Configuration
@@ -29,93 +34,77 @@ public class SecurityConfig {
             throws Exception {
 
         http
-            // Enable CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-            // Disable CSRF (JWT)
             .csrf(csrf -> csrf.disable())
 
             .authorizeHttpRequests(auth -> auth
 
-                // Preflight
+                // OPTIONS preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // 🔓 PUBLIC APIs
+                // Public APIs
                 .requestMatchers(
-                	    "/api/auth/**",
-                	    "/api/users/**",
-                	    "/api/states/**",
-                	    "/api/divisions/**",
-                	    "/productImages/**",
-                	    "/api/payments/**",
-                	    "/api/reviews/**"
-                	).permitAll()
+                        "/api/auth/**",
+                        "/api/users/**",
+                        "/api/states/**",
+                        "/api/divisions/**",
+                        "/api/reviews/**",
+                        "/api/payments/**",
+                        "/productImages/**"
+                ).permitAll()
 
-                	// USER ROLES - authenticated
-                	.requestMatchers("/api/user-roles/**").authenticated()
+                // Public product read
+                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
-                // 🟢 PUBLIC PRODUCT READ
-                .requestMatchers(HttpMethod.GET, "/api/products/**")
-                .permitAll()
+                // Role APIs
+                .requestMatchers("/api/user-roles/**").hasRole("ADMIN")
 
-                // 🟡 BUYER: REGION PRODUCTS
-                .requestMatchers("/api/products/region/**")
-                .hasRole("BUYER")
+                // Buyer APIs
+                .requestMatchers("/api/products/region/**").hasRole("BUYER")
+                .requestMatchers("/api/cart/**").hasRole("BUYER")
 
-                // 🛒 BUYER: CART
-                .requestMatchers("/api/cart/**")
-                .hasRole("BUYER")
-
-                // 🧑‍🌾 SELLER / ADMIN: PRODUCT WRITE
+                // Seller/Admin APIs
                 .requestMatchers(HttpMethod.POST, "/api/products/**")
-                .hasAnyRole("SELLER", "ADMIN")
+                        .hasAnyRole("SELLER", "ADMIN")
 
                 .requestMatchers(HttpMethod.PUT, "/api/products/**")
-                .hasAnyRole("SELLER", "ADMIN")
+                        .hasAnyRole("SELLER", "ADMIN")
 
                 .requestMatchers(HttpMethod.DELETE, "/api/products/**")
-                .hasAnyRole("SELLER", "ADMIN")
+                        .hasAnyRole("SELLER", "ADMIN")
 
-                // 📦 SELLER ORDERS
-                .requestMatchers("/api/orders/seller/**")
-                .authenticated()
-
-                // 🔐 EVERYTHING ELSE
                 .anyRequest().authenticated()
             )
 
-            // Stateless JWT
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
 
-        // JWT filter
         http.addFilterBefore(jwtFilter,
                 UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // 🌍 CORS CONFIG
+    // CORS configuration
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOriginPatterns(List.of(
-        	    "http://localhost:*",
-        	    "http://127.0.0.1:*",
-        	    "https://cdac.ayushshirbhate.site",   // ✅ your custom domain
-        	    "https://*.netlify.app",              // ✅ all netlify
-        	    "https://*.onrender.com"             // ✅ add this too
-        	));
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "https://*.netlify.app",
+                "https://*.onrender.com",
+                "https://cdac.ayushshirbhate.site"
+        ));
 
         config.setAllowedMethods(
-            List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                List.of("GET","POST","PUT","DELETE","OPTIONS")
         );
 
         config.setAllowedHeaders(List.of("*"));
-
         config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source =
@@ -126,10 +115,10 @@ public class SecurityConfig {
         return source;
     }
 
-
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
+
         return config.getAuthenticationManager();
     }
 

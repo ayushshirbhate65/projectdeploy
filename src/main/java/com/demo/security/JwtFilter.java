@@ -2,8 +2,10 @@ package com.demo.security;
 
 import java.io.IOException;
 
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,19 +32,18 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // ✅ Skip JWT for public endpoints
+        // Skip JWT for public endpoints
         if (
-        	    request.getMethod().equals("OPTIONS") ||
-        	    path.startsWith("/api/auth") ||
-        	    path.startsWith("/api/users") ||
-        	    path.startsWith("/api/payments") ||
-        	    path.startsWith("/api/states") ||
-        	    path.startsWith("/api/divisions") ||
-        	    path.startsWith("/api/reviews") ||
-        	    (path.startsWith("/api/products")
-        	        && request.getMethod().equals("GET")) ||
-        	    path.startsWith("/productImages")
-        	) {
+            request.getMethod().equals("OPTIONS") ||
+            path.startsWith("/api/auth") ||
+            path.startsWith("/api/users") ||
+            path.startsWith("/api/states") ||
+            path.startsWith("/api/divisions") ||
+            path.startsWith("/api/reviews") ||
+            path.startsWith("/api/payments") ||
+            path.startsWith("/productImages") ||
+            (path.startsWith("/api/products") && request.getMethod().equals("GET"))
+        ) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -70,24 +71,19 @@ public class JwtFilter extends OncePerRequestFilter {
             UserDetails userDetails =
                     userDetailsService.loadUserByUsername(email);
 
-            if (!jwtUtil.validateToken(token, userDetails)) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Token expired");
-                return;
+            if (jwtUtil.validateToken(token, userDetails)) {
+
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
-
-            SecurityContextHolder.getContext()
-                    .setAuthentication(authToken);
         }
 
         filterChain.doFilter(request, response);
     }
-
-
 }
