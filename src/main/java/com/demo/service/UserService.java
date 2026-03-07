@@ -57,6 +57,27 @@ public class UserService {
 
         userRepository.save(user);
     }
+    public void becomeSeller(Integer userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Role sellerRole = roleRepository.findByRoleName("ROLE_SELLER")
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        boolean alreadySeller = user.getUserRoles()
+                .stream()
+                .anyMatch(ur -> ur.getRole().getRoleName().equals("ROLE_SELLER"));
+
+        if (!alreadySeller) {
+
+            UserRole ur = new UserRole();
+            ur.setUser(user);
+            ur.setRole(sellerRole);
+
+            userRoleRepository.save(ur);
+        }
+    }
 
 
     @Transactional
