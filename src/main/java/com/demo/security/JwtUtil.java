@@ -12,7 +12,6 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtil {
 
-    // MUST be at least 256 bits
     private static final String SECRET =
             "digitalKrishiBazaarSecretKeydigitalKrishiBazaarSecretKey";
 
@@ -39,15 +38,17 @@ public class JwtUtil {
                 .getBody()
                 .getSubject();
     }
-    
-    
+
     public boolean validateToken(String token, UserDetails userDetails) {
+
         String email = extractEmail(token);
+
         return email.equals(userDetails.getUsername())
                 && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
+
         Date expiration = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -57,5 +58,4 @@ public class JwtUtil {
 
         return expiration.before(new Date());
     }
-
 }
