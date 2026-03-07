@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
                 // Role APIs
-                .requestMatchers("/api/user-roles/**").hasRole("ADMIN")
+                .requestMatchers("/api/user-roles/**").hasAnyRole("ADMIN", "BUYER")
 
                 // Buyer APIs
                 .requestMatchers("/api/products/region/**").hasRole("BUYER")
