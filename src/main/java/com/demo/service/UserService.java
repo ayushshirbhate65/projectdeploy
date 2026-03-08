@@ -61,6 +61,30 @@ public class UserService {
     }
 
     /* ======================
+       BECOME SELLER
+       ====================== */
+    @Transactional
+    public void becomeSeller(Integer userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Role sellerRole = roleRepository.findByRoleName("SELLER")
+                .orElseThrow(() -> new RuntimeException("SELLER role not found"));
+
+        boolean alreadySeller = user.getUserRoles().stream()
+                .anyMatch(ur -> ur.getRole().getRoleName().equals("SELLER"));
+
+        if (!alreadySeller) {
+            UserRole userRole = new UserRole();
+            userRole.setUser(user);
+            userRole.setRole(sellerRole);
+            user.getUserRoles().add(userRole);
+            userRepository.save(user);
+        }
+    }
+
+    /* ======================
        CREATE USER
        ====================== */
     @Transactional
@@ -79,25 +103,20 @@ public class UserService {
         user.setDob(dto.getDob());
         user.setCreatedAt(LocalDateTime.now());
 
-        // DEFAULT ROLE = ROLE_BUYER
-        Role buyerRole = roleRepository.findByRoleName("ROLE_BUYER")
-                .orElseThrow(() -> new RuntimeException("ROLE_BUYER not found"));
+        Role buyerRole = roleRepository.findByRoleName("BUYER")
+                .orElseThrow(() -> new RuntimeException("BUYER role not found"));
 
         UserRole userRole = new UserRole();
         userRole.setUser(user);
         userRole.setRole(buyerRole);
-
         user.getUserRoles().add(userRole);
 
-        // STATE
         State state = stateRepository.findById(dto.getStateId())
                 .orElseThrow(() -> new RuntimeException("State not found"));
 
-        // DIVISION
         Division division = divisionRepository.findById(dto.getDivisionId())
                 .orElseThrow(() -> new RuntimeException("Division not found"));
 
-        // VALIDATION
         if (!division.getState().getStateId().equals(state.getStateId())) {
             throw new RuntimeException("Division does not belong to selected state");
         }
@@ -112,7 +131,6 @@ public class UserService {
        GET USER BY ID
        ====================== */
     public User getUserById(Integer userId) {
-
         return userRepository.findById(userId)
                 .orElseThrow(() ->
                         new RuntimeException("User not found with id: " + userId));
@@ -129,18 +147,14 @@ public class UserService {
        UPDATE USER
        ====================== */
     public User updateUser(Integer userId, User user) {
-
         User existingUser = getUserById(userId);
-
         existingUser.setUserName(user.getUserName());
         existingUser.setMobile(user.getMobile());
         existingUser.setAddress(user.getAddress());
         existingUser.setStatus(user.getStatus());
         existingUser.setCredit(user.getCredit());
-
         return userRepository.save(existingUser);
     }
-    
 
     /* ======================
        DELETE USER
@@ -153,7 +167,6 @@ public class UserService {
        GET USER BY EMAIL
        ====================== */
     public User getUserByEmail(String email) {
-
         return userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("User not found with email: " + email));
@@ -164,29 +177,5 @@ public class UserService {
        ====================== */
     public List<User> getUsersByStatus(String status) {
         return userRepository.findByStatus(status);
-    }
-
-    @Transactional
-    public void becomeSeller(Integer userId) {
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Role sellerRole = roleRepository.findByRoleName("ROLE_SELLER")
-                .orElseThrow(() -> new RuntimeException("ROLE_SELLER not found"));
-
-        boolean alreadySeller = user.getUserRoles().stream()
-                .anyMatch(ur -> ur.getRole().getRoleName().equals("ROLE_SELLER"));
-
-        if (!alreadySeller) {
-
-            UserRole userRole = new UserRole();
-            userRole.setUser(user);
-            userRole.setRole(sellerRole);
-
-            user.getUserRoles().add(userRole);
-
-            userRepository.save(user);
-        }
     }
 }
