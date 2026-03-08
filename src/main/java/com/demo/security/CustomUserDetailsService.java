@@ -1,9 +1,12 @@
 package com.demo.security;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.*;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import com.demo.model.User;
@@ -23,15 +26,17 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found"));
 
-        List<String> roles = user.getUserRoles()
-                .stream()
-                .map(ur -> ur.getRole().getRoleName())
-                .toList();
+        List<GrantedAuthority> authorities =
+                user.getUserRoles().stream()
+                .map(ur -> new SimpleGrantedAuthority(
+                        ur.getRole().getRoleName()
+                ))
+                .collect(Collectors.toList());
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .roles(roles.toArray(new String[0]))
-                .build();
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                authorities
+        );
     }
 }

@@ -41,8 +41,8 @@ public class JwtFilter extends OncePerRequestFilter {
             path.startsWith("/api/divisions") ||
             path.startsWith("/api/reviews") ||
             path.startsWith("/api/payments") ||
-            path.startsWith("/productImages") ||
             path.startsWith("/api/images") ||
+            path.startsWith("/productImages") ||
             (path.startsWith("/api/products") && request.getMethod().equals("GET"))
         ) {
             filterChain.doFilter(request, response);
@@ -57,8 +57,8 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String email;
 
+        String email;
         try {
             email = jwtUtil.extractEmail(token);
         } catch (Exception e) {
@@ -67,7 +67,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (email != null &&
-            SecurityContextHolder.getContext().getAuthentication() == null) {
+                SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDetails userDetails =
                     userDetailsService.loadUserByUsername(email);
@@ -81,7 +81,8 @@ public class JwtFilter extends OncePerRequestFilter {
                                 userDetails.getAuthorities()
                         );
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                SecurityContextHolder.getContext()
+                        .setAuthentication(authToken);
             }
         }
 
