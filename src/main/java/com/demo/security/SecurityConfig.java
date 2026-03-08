@@ -66,10 +66,10 @@ public class SecurityConfig {
 
                 // Seller/Admin APIs
                 .requestMatchers(HttpMethod.POST, "/api/products/**")
-                        .hasAnyRole("SELLER", "ADMIN")
+                        .hasAnyRole("SELLER", "ADMIN", "BUYER")
 
                 .requestMatchers(HttpMethod.PUT, "/api/products/**")
-                        .hasAnyRole("SELLER", "ADMIN")
+                        .hasAnyRole("SELLER", "ADMIN", "BUYER")
 
                 .requestMatchers(HttpMethod.DELETE, "/api/products/**")
                         .hasAnyRole("SELLER", "ADMIN")

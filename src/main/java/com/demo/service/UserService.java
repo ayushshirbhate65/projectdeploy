@@ -166,8 +166,27 @@ public class UserService {
         return userRepository.findByStatus(status);
     }
 
-	public void becomeSeller(Integer userId) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Transactional
+    public void becomeSeller(Integer userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Role sellerRole = roleRepository.findByRoleName("ROLE_SELLER")
+                .orElseThrow(() -> new RuntimeException("ROLE_SELLER not found"));
+
+        boolean alreadySeller = user.getUserRoles().stream()
+                .anyMatch(ur -> ur.getRole().getRoleName().equals("ROLE_SELLER"));
+
+        if (!alreadySeller) {
+
+            UserRole userRole = new UserRole();
+            userRole.setUser(user);
+            userRole.setRole(sellerRole);
+
+            user.getUserRoles().add(userRole);
+
+            userRepository.save(user);
+        }
+    }
 }
