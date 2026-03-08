@@ -50,7 +50,8 @@ public class SecurityConfig {
                         "/api/divisions/**",
                         "/api/reviews/**",
                         "/api/payments/**",
-                        "/productImages/**"
+                        "/productImages/**",
+                        "/api/images/**"
                 ).permitAll()
 
                 // Public product read
