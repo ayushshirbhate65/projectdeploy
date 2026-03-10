@@ -14,8 +14,6 @@ import com.demo.repository.CategoryRespository;
 import com.demo.repository.ProductRepository;
 import com.demo.repository.UserRepository;
 
-
-
 @Service
 public class ProductService {
 
@@ -27,7 +25,7 @@ public class ProductService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private FileSystemService fileSystemService;
 
@@ -62,8 +60,7 @@ public class ProductService {
        ====================== */
 
     public Product addProduct(CreateProductDTO dto) {
-    	
-    	 // 🔥 Ensure folder exists BEFORE saving product
+
         fileSystemService.ensureUserProductFolderExists(dto.getSellerId());
 
         Product product = new Product();
@@ -76,7 +73,6 @@ public class ProductService {
         product.setOriginPlace(dto.getOriginPlace());
         product.setImageUrl(dto.getImageUrl());
 
-        // DEFAULT STATUS
         product.setStatus("PENDING");
         product.setCreatedAt(LocalDateTime.now());
 
@@ -103,22 +99,41 @@ public class ProductService {
 
         return productRepository.save(product);
     }
-    
-    
-    /* ======================
-    GET PRODUCTS BY SELLER
-    ====================== */
-	 public List<Product> getProductsBySeller(Integer userId) {
-	
-	     // Optional safety check (recommended)
-	     userRepository.findById(userId)
-	             .orElseThrow(() -> new RuntimeException("Seller not found"));
-	
-	     return productRepository.findBySeller_UserId(userId);
-	 }
 
-    
-    
+    /* ======================
+       DELETE PRODUCT (SOFT DELETE)
+       ====================== */
+
+    public Product deleteProduct(Integer productId, Integer sellerId) {
+
+        Product product = getProductById(productId);
+
+        // Ensure seller owns the product
+        if (!product.getSeller().getUserId().equals(sellerId)) {
+            throw new RuntimeException("You are not allowed to delete this product");
+        }
+
+        product.setStatus("DELETED");
+
+        return productRepository.save(product);
+    }
+
+    /* ======================
+       GET PRODUCTS BY SELLER
+       ====================== */
+
+    public List<Product> getProductsBySeller(Integer userId) {
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Seller not found"));
+
+        return productRepository.findBySeller_UserId(userId);
+    }
+
+    /* ======================
+       UPDATE PRODUCT
+       ====================== */
+
     public Product updateProductById(Integer productId, CreateProductDTO dto) {
 
         Product product = getProductById(productId);
@@ -132,14 +147,12 @@ public class ProductService {
         product.setOriginPlace(dto.getOriginPlace());
         product.setImageUrl(dto.getImageUrl());
 
-        // Category update (optional)
         if (dto.getCategoryId() != null) {
             Category category = categoryRepository.findById(dto.getCategoryId())
                     .orElseThrow(() -> new RuntimeException("Category not found"));
             product.setCategory(category);
         }
 
-        // Seller update (usually NOT allowed, but supported if needed)
         if (dto.getSellerId() != null) {
             User seller = userRepository.findById(dto.getSellerId())
                     .orElseThrow(() -> new RuntimeException("Seller not found"));
@@ -148,15 +161,11 @@ public class ProductService {
 
         return productRepository.save(product);
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+    /* ======================
+       REGION PRODUCTS
+       ====================== */
+
     public List<Product> getProductsForUserRegion(Integer userId) {
 
         User user = userRepository.findById(userId)
@@ -167,10 +176,4 @@ public class ProductService {
         return productRepository
                 .findBySeller_State_StateIdAndStatus(stateId, "APPROVED");
     }
-
-
-    
-    
-    
 }
-
