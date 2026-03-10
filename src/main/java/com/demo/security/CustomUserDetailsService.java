@@ -26,10 +26,11 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found"));
 
+        // Convert roles to Spring Security format
         List<GrantedAuthority> authorities =
                 user.getUserRoles().stream()
                 .map(ur -> new SimpleGrantedAuthority(
-                        "ROLE_" + ur.getRole().getRoleName()  // ✅ Fixed: added ROLE_ prefix
+                        "ROLE_" + ur.getRole().getRoleName()
                 ))
                 .collect(Collectors.toList());
 
