@@ -29,7 +29,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         List<GrantedAuthority> authorities =
                 user.getUserRoles().stream()
                 .map(ur -> new SimpleGrantedAuthority(
-                        ur.getRole().getRoleName()
+                        "ROLE_" + ur.getRole().getRoleName()  // ✅ Fixed: added ROLE_ prefix
                 ))
                 .collect(Collectors.toList());
 
