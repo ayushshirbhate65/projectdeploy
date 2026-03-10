@@ -30,8 +30,7 @@ public class SecurityConfig {
     private JwtFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -39,7 +38,7 @@ public class SecurityConfig {
 
             .authorizeHttpRequests(auth -> auth
 
-                // OPTIONS preflight
+                // Allow preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                 // Public APIs
@@ -57,22 +56,22 @@ public class SecurityConfig {
                 // Public product read
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
-                // Role APIs
-                .requestMatchers("/api/user-roles/**").hasAnyRole("ADMIN", "BUYER")
-
                 // Buyer APIs
                 .requestMatchers("/api/products/region/**").hasRole("BUYER")
                 .requestMatchers("/api/cart/**").hasRole("BUYER")
 
-                // Seller/Admin APIs
+                // Product management
                 .requestMatchers(HttpMethod.POST, "/api/products/**")
-                        .hasAnyRole("SELLER", "ADMIN", "BUYER")
+                        .hasAnyRole("SELLER","ADMIN")
 
                 .requestMatchers(HttpMethod.PUT, "/api/products/**")
-                        .hasAnyRole("SELLER", "ADMIN", "BUYER")
+                        .hasAnyRole("SELLER","ADMIN")
 
                 .requestMatchers(HttpMethod.DELETE, "/api/products/**")
-                        .hasAnyRole("SELLER", "ADMIN")
+                        .hasRole("ADMIN")
+
+                // User role assignment
+                .requestMatchers("/api/user-roles/**").hasRole("ADMIN")
 
                 .anyRequest().authenticated()
             )
@@ -81,8 +80,7 @@ public class SecurityConfig {
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
 
-        http.addFilterBefore(jwtFilter,
-                UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -101,9 +99,9 @@ public class SecurityConfig {
                 "https://cdac.ayushshirbhate.site"
         ));
 
-        config.setAllowedMethods(
-                List.of("GET","POST","PUT","DELETE","OPTIONS")
-        );
+        config.setAllowedMethods(List.of(
+                "GET","POST","PUT","DELETE","OPTIONS"
+        ));
 
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(false);
