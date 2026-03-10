@@ -61,7 +61,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/cart/**").hasRole("BUYER")
 
                 // Product management
-             // Product management
                 .requestMatchers(HttpMethod.POST, "/api/products/**")
                         .hasAnyRole("SELLER","ADMIN")
 
@@ -69,7 +68,7 @@ public class SecurityConfig {
                         .hasAnyRole("SELLER","ADMIN")
 
                 .requestMatchers(HttpMethod.DELETE, "/api/products/**")
-                        .hasAnyRole("SELLER","ADMIN")
+                        .hasRole("ADMIN")
 
                 // User role assignment
                 .requestMatchers("/api/user-roles/**").hasRole("ADMIN")
