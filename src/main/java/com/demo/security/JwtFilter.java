@@ -32,6 +32,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
+        // public APIs
         if (
             request.getMethod().equals("OPTIONS") ||
             path.startsWith("/api/auth") ||
@@ -61,27 +62,24 @@ public class JwtFilter extends OncePerRequestFilter {
 
             String email = jwtUtil.extractEmail(token);
 
-            if (email != null &&
-                    SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails =
+                    userDetailsService.loadUserByUsername(email);
 
-                UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(email);
+            if (jwtUtil.validateToken(token, userDetails)) {
 
-                if (jwtUtil.validateToken(token, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
 
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(authToken);
-                }
+                SecurityContextHolder.getContext()
+                        .setAuthentication(authToken);
             }
 
         } catch (Exception e) {
+
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid Token");
             return;
         }
