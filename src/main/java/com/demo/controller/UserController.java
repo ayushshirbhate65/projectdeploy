@@ -1,6 +1,7 @@
 package com.demo.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import com.demo.dto.RoleDTO;
 import com.demo.dto.UserResponseDTO;
 import com.demo.model.Product;
 import com.demo.model.User;
+import com.demo.security.JwtUtil;
 import com.demo.service.ProductService;
 import com.demo.service.UserService;
 
@@ -22,11 +24,14 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private ProductService productService;
-    
-    
+
+    // FIX: Inject JwtUtil to generate a fresh token after role upgrade
+    @Autowired
+    private JwtUtil jwtUtil;
+
 
     /* ======================
        CREATE USER
@@ -43,13 +48,37 @@ public class UserController {
         );
     }
 
+    /* ======================
+       BECOME SELLER
+       FIX: Returns a new JWT token containing the SELLER role,
+       so the frontend doesn't need to re-login manually.
+       ====================== */
     @PostMapping("/become-seller")
-    public ResponseEntity<String> becomeSeller(
+    public ResponseEntity<Map<String, Object>> becomeSeller(
             @RequestParam Integer userId) {
 
         userService.becomeSeller(userId);
 
-        return ResponseEntity.ok("User upgraded to SELLER");
+        // Re-fetch updated user and issue a fresh token with the new SELLER role
+        User user = userService.getUserById(userId);
+        String newToken = jwtUtil.generateToken(user.getEmail());
+
+        Map<String, Object> response = Map.of(
+                "token", newToken,
+                "type", "Bearer",
+                "message", "User upgraded to SELLER",
+                "user", Map.of(
+                        "id", user.getUserId(),
+                        "name", user.getUserName(),
+                        "email", user.getEmail(),
+                        "roles", user.getUserRoles()
+                                .stream()
+                                .map(ur -> ur.getRole().getRoleName())
+                                .toList()
+                )
+        );
+
+        return ResponseEntity.ok(response);
     }
 
 
@@ -115,24 +144,23 @@ public class UserController {
                 .toList();
         return ResponseEntity.ok(users);
     }
-    
-    
-    /* ======================
-    GET PRODUCTS BY SELLER (USER)
-    ====================== */
-	 @GetMapping("/{userId}/products")
-	 public ResponseEntity<List<ProductDTO>> getProductsBySeller(
-	         @PathVariable Integer userId) {
-	
-	     List<ProductDTO> products = productService.getProductsBySeller(userId)
-	             .stream()
-	             .map(this::mapToProductDTO)
-	             .toList();
-	
-	     return ResponseEntity.ok(products);
-	 }
 
-    
+
+    /* ======================
+       GET PRODUCTS BY SELLER (USER)
+       ====================== */
+    @GetMapping("/{userId}/products")
+    public ResponseEntity<List<ProductDTO>> getProductsBySeller(
+            @PathVariable Integer userId) {
+
+        List<ProductDTO> products = productService.getProductsBySeller(userId)
+                .stream()
+                .map(this::mapToProductDTO)
+                .toList();
+
+        return ResponseEntity.ok(products);
+    }
+
 
     /* ======================
        ENTITY → DTO MAPPER
@@ -149,7 +177,6 @@ public class UserController {
         dto.setCredit(user.getCredit());
         dto.setGender(user.getGender());
         dto.setDob(user.getDob());
-        
 
         List<RoleDTO> roles = user.getUserRoles()
                 .stream()
@@ -164,9 +191,8 @@ public class UserController {
         dto.setRoles(roles);
         return dto;
     }
-    
-    
-    
+
+
     private ProductDTO mapToProductDTO(Product p) {
 
         ProductDTO dto = new ProductDTO();
@@ -192,7 +218,4 @@ public class UserController {
 
         return dto;
     }
-
-    
-    
 }

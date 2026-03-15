@@ -56,16 +56,16 @@ public class SecurityConfig {
                 // Public product read
                 .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
 
-                // Buyer APIs
-                .requestMatchers("/api/products/region/**").hasRole("BUYER")
+                // Buyer APIs — FIX: Added HttpMethod.GET so POST/PUT are not blocked here
+                .requestMatchers(HttpMethod.GET, "/api/products/region/**").hasRole("BUYER")
                 .requestMatchers("/api/cart/**").hasRole("BUYER")
 
                 // Product management
                 .requestMatchers(HttpMethod.POST, "/api/products/**")
-                        .hasAnyRole("SELLER","ADMIN")
+                        .hasAnyRole("SELLER", "ADMIN")
 
                 .requestMatchers(HttpMethod.PUT, "/api/products/**")
-                        .hasAnyRole("SELLER","ADMIN")
+                        .hasAnyRole("SELLER", "ADMIN")
 
                 .requestMatchers(HttpMethod.DELETE, "/api/products/**")
                         .hasRole("ADMIN")
@@ -100,7 +100,7 @@ public class SecurityConfig {
         ));
 
         config.setAllowedMethods(List.of(
-                "GET","POST","PUT","DELETE","OPTIONS"
+                "GET", "POST", "PUT", "DELETE", "OPTIONS"
         ));
 
         config.setAllowedHeaders(List.of("*"));
